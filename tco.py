@@ -7,6 +7,7 @@ For testing."""
 import argparse
 import sys
 
+
 def test_file_exists(filename: str, debug=False) -> bool:
     """Check if file exists."""
     from pathlib import Path
@@ -151,10 +152,11 @@ def run_base_test(debug: bool):
 #       'author_email': None,
 #       'formats': []}]}
 
+
 def check_if_in_dict(thisdict, key, debug):
     """Check if key is in dict"""
     if not isinstance(thisdict, dict):
-        print ("ERROR: check_if_in_dict: Not a dict.")
+        print("ERROR: check_if_in_dict: Not a dict.")
         if debug:
             print("DEBUG: No dict={}".format(thisdict))
         return 1, list("Not a dict")
@@ -163,7 +165,8 @@ def check_if_in_dict(thisdict, key, debug):
         return 1, list("Key {} missing".format(key))
     return 0, None
 
-def check_artefact(tco, thisart:dict, debug):
+
+def check_artefact(tco, thisart: dict, debug):
     """Check artefact syntax.
 
     Add artefact to object if ok."""
@@ -201,7 +204,6 @@ def check_artefact(tco, thisart:dict, debug):
             if debug:
                 print("Unhandled key {}".format(key))
 
-
     # Check if artefact is valid
     newerr, newmsg = myart.is_valid()
     errors += newerr
@@ -215,7 +217,7 @@ def check_artefact(tco, thisart:dict, debug):
     return myart, errors, errmsg
 
 
-def check_format(art, thisformat:dict, debug):
+def check_format(art, thisformat: dict, debug):
     """Check format syntax.
 
     Add artefact to artefact object if ok."""
@@ -269,11 +271,10 @@ def check_format(art, thisformat:dict, debug):
             errmsg.append("Error adding format to collection")
     return errors, errmsg
 
+
 def traversedict(tco, art, thisdict: dict, thiskey: str, debug):
     """Traverse a collection object to check syntax."""
 
-    #if debug:
-    #   print("DEBUG: Starting traverse of {}".format(thisdict["UUID"]))
     if debug and thiskey is not None:
         print("DEBUG: *** Checking dict {}".format(thiskey))
     errors = 0
@@ -301,16 +302,18 @@ def traversedict(tco, art, thisdict: dict, thiskey: str, debug):
                     print("DEBUG: Checking list object: {}".format(stuff))
                 # Add object if it's an artefact
                 if key == "artefacts":
-                    thisart, newerr, newdict = check_artefact(tco=tco, thisart=stuff, debug=debug)
+                    thisart, newerr, newdict = check_artefact(
+                        tco=tco, thisart=stuff, debug=debug)
                     errors += newerr
                     errdict += newdict
                 if key == "formats":
                     if art is None:
                         print("ERROR: Missing ART: {}".format(art))
                         errors += 1
-                        errmsg.append("Code error. missing ART")
+                        errdict.append("Code error. missing ART")
                     else:
-                        newerr, newdict = check_format(art=art, thisformat=stuff, debug=debug)
+                        newerr, newdict = check_format(
+                            art=art, thisformat=stuff, debug=debug)
                         errors += newerr
                         errdict += newdict
                 # Traverse the dict
@@ -342,7 +345,6 @@ def traversedict(tco, art, thisdict: dict, thiskey: str, debug):
             if debug:
                 print("DEBUG: Unhandled key: {}".format(key))
 
-                    
     if errors > 0:
         print("DEBUG: Errors: {}".format(errors))
     return errors, errdict
@@ -354,8 +356,6 @@ def dict2object(colldict, debug: bool):
     (like input from a json file)
     """
     from tea_collection import collection
-    from tea_collection import artefact
-    from tea_collection import format
 
     if debug:
         print("DEBUG: dict2object converting data")
