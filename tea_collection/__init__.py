@@ -151,7 +151,18 @@ class collection:
             self.collection["author_email"] = email
         return True
 
-    def set_product(self, name: str, version: str, releasedate: str, teiid: str):
+    def get_author(self):
+        """Get author details."""
+        return self.collection["author_name"], \
+            self.collection["author_org"], \
+            self.collection["author_email"]
+
+    def set_product(
+            self,
+            name: str,
+            version: str,
+            releasedate: str,
+            teiid: str):
         """Set product metadata.
 
         Empty string or None will not update values.
@@ -182,10 +193,14 @@ class collection:
         if self.debug:
             print("DEBUG: Adding artefact - type {}".format(type(art)))
         return True
-    
+
+    def artefact_numbers(self):
+        """Return number of artefacts."""
+        return len(self.collection["artefacts"])
+
     def check_key(self, key):
         """Check if key is in vocabulary."""
-    
+
         if key in self.vocabulary:
             return True
         if self.debug:
@@ -245,7 +260,6 @@ class artefact:
         # Create copy object
         newart = dict(self.artefact)
         formlist = self.get_formats()
-        
         newart["formats"] = formlist
 
         return json.dumps(newart, sort_keys=False, indent=4)
@@ -305,7 +319,7 @@ class artefact:
         """Add format to artefact."""
         self.artefact["formats"].append(format)
         return len(self.artefact["formats"])
-    
+
     def get_formats(self):
         """Get data structures from formats in list."""
         formlist = self.artefact["formats"]
@@ -322,7 +336,7 @@ class artefact:
         """Add blank initialised format to artefact."""
         from tea_collection import format
 
-        newform = artefact_format(debug=self.debug)
+        newform = format(debug=self.debug)
         newform.init_format()
         allformats = self.add_format(newform)
         if self.debug:
@@ -439,7 +453,7 @@ class format():
         """Set size of doc."""
         self.format["size"] = int(size)
         return True
-    
+
     def set_attributes(self, hash: str, size: int):
         """Set hash and size of artefact."""
         if hash is not None:
