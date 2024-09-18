@@ -73,13 +73,34 @@ def test_coll_02(capsys, request, def_collection, def_artefact):
 class TestCollection:
     """Test collection class"""
 
-    def test_set_author(self, capsys, request, def_collection):
+    def test_serialise(self, capsys, request, def_collection):
+        """Test serialise."""
+        import re
+        import json
+        mycol = def_collection
+        strcol = str(mycol)
+        newcol = json.loads(strcol)
+        captured = capsys.readouterr()
+        with capsys.disabled():
+            print(
+                "\nDEBUG {}: output: \n{}\n"
+                .format(request.node.name, captured.out))
+            print("JSON: {}".format(strcol))
+            print("Newjson: {}".format(newcol))
+        assert re.search(
+            'product_name',
+            strcol
+        ) is not None
+    
+
+
+    def test_set_author_01(self, capsys, request, def_collection):
         """Test set author."""
         mycol = def_collection
         tname = "Ford Prefect"
         torg = "The Heart of Gold, inc"
         temail = "ford.prefect@hog.example.com"
-        mycol.set_author(
+        res = mycol.set_author(
             name=tname,
             org=torg,
             email=temail)
@@ -92,3 +113,46 @@ class TestCollection:
         assert name == tname
         assert email == temail
         assert org == torg
+        assert res is True
+
+    def test_set_author_02(self, capsys, request, def_collection):
+        """Test set author empty data."""
+        mycol = def_collection
+        tname = None
+        torg = None
+        temail = None
+        res = mycol.set_author(
+            name=tname,
+            org=torg,
+            email=temail)
+        name, org, email = mycol.get_author()
+        captured = capsys.readouterr()
+        with capsys.disabled():
+            print(
+                "\nDEBUG {}: output: \n{}\n"
+                .format(request.node.name, captured.out))
+        assert res is False
+
+    def test_set_author_03(self, capsys, request, def_collection):
+        """Test set author empty data."""
+        import re
+
+        mycol = def_collection
+        tname = 123
+        torg = capsys
+        temail = self
+        res = mycol.set_author(
+            name=tname,
+            org=torg,
+            email=temail)
+        name, org, email = mycol.get_author()
+        captured = capsys.readouterr()
+        with capsys.disabled():
+            print(
+                "\nDEBUG {}: output: \n{}\n"
+                .format(request.node.name, captured.out))
+        assert res is False
+        assert re.search(
+            "Name is not str",
+            captured.out
+        ) is not None

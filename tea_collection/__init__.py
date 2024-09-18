@@ -143,6 +143,23 @@ class collection:
         """
         if name is None and org is None and email is None:
             return False
+        if name == "" and org == "" and email == "":
+            return False
+        errors = 0
+        if not isinstance(name, str):
+            if self.debug:
+                print("DEBUG: Name is not str")
+            errors += 1
+        if not isinstance(org, str):
+            if self.debug:
+                print("DEBUG: Org is not str")
+            errors += 1
+        if not isinstance(email, str):
+            if self.debug:
+                print("DEBUG: Email is not str")
+            errors += 1
+        if errors > 0:
+            return False
         if name is not None and name != "":
             self.collection["author_name"] = name
         if org is not None and name != "":
