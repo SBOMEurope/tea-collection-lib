@@ -194,10 +194,21 @@ class collection:
             self.collection["product_tei_id"] = teiid
         return True
 
+     def get_product(self):
+        """Get product details."""
+        return self.collection["product_name"], \
+            self.collection["product_version"], \
+            self.collection["product_release_date"], \
+            self.collection["product_tei_id"]
+
     def set_version(self, version: int):
         """Set collection version."""
         self.collection["version"] = version
         return True
+
+    def get_version(self):
+        """Return collection version."""
+        return self.collection["version"]
 
     def add_artefact(self, art):
         """Add artefact to collection."""
@@ -214,6 +225,14 @@ class collection:
     def artefact_numbers(self):
         """Return number of artefacts."""
         return len(self.collection["artefacts"])
+    
+    def get_artefact(self, id: int):
+        """Get artefact by ID."""
+        if id < 0 or id >= self.artefact_numbers():
+            if self.debug:
+                print("DEBUG: Bad artefact ID: {}".format(id))
+            return None
+        return self.collection["artefacts"][id]
 
     def check_key(self, key):
         """Check if key is in vocabulary."""
