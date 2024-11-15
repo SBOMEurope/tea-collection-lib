@@ -1,0 +1,54 @@
+{
+    "tcoFormat": "TEA-collection",
+    "specVersion": "1.0",
+    "Not-a-UUID": "cf4cb929-8e14-4a13-9ae8-22c3f9c216d6",
+    "product_name": "Spaceship Mega3000 XL",
+    "product_version": "23.43.34",
+    "product_release_date": "20240423",
+    "product_tei_id": "purl:alsdkfjlaskdfjlaskdfjl\u00f6askdf",
+    "version": 12,
+    "author_name": "Ford Prefect",
+    "author_org": "The Heart of Gold, inc",
+    "author_email": "ford.prefect@hog.example.com",
+    "artefacts": [
+        {
+            "uuid": "cde71066-db8f-4b5e-a26c-71cc3b04ec69",
+            "name": "SBOM",
+            "description": "CycloneDX SBOM for the software",
+            "author_name": "Ford Prefect",
+            "author_org": "The Heart of Gold, inc",
+            "author_email": "ford.prefect@hog.example.com",
+            "formats": [
+                {
+                    "uuid": "320130b6-e64f-472b-b115-134dadcee218",
+                    "bom-identifier": null,
+                    "mediatype": "application/cyclonedx",
+                    "category": null,
+                    "url": "https://product.example.com/stuff.json",
+                    "sigurl": "https://product.example.com/stuff.sbom.sig",
+                    "hash": "lkasdfjlkasdfj",
+                    "size": 74747474
+                },
+                {
+                    "uuid": "9f86d936-20e7-44c1-9643-c0383f412ce2",
+                    "bom-identifier": null,
+                    "mediatype": null,
+                    "category": null,
+                    "url": null,
+                    "sigurl": null,
+                    "hash": null,
+                    "size": 0
+                }
+            ]
+        },
+        {
+            "uuid": "1d10caf0-3a18-413d-9b59-5e2a97977301",
+            "name": "VEX file",
+            "description": null,
+            "author_name": null,
+            "author_org": null,
+            "author_email": null,
+            "formats": []
+        }
+    ]
+}

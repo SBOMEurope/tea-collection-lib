@@ -1,0 +1,57 @@
+{
+    "tcoFormat": "TEA-collection",
+    "specVersion": "1.0",
+    "collectionUuid": "cf4cb929-8e14-4a13-9ae8-22c3f9c216d6",
+    "productName": "Spaceship Mega3000 XL",
+    "productBersion": "23.43.34",
+    "productReleaseDate": "20240423",
+    "productTeiId": "purl:alsdkfjlaskdfjlaskdfjl\u00f6askdf",
+    "version": 12,
+    "author": {
+        "name": "Ford Prefect",
+        "org": "The Heart of Gold, inc",
+        "email": "ford.prefect@hog.example.com"
+    },
+    "artefacts": [
+        {
+            "artfeactUuid": "cde71066-db8f-4b5e-a26c-71cc3b04ec69",
+            "name": "SBOM",
+            "description": "CycloneDX SBOM for the software",
+            "author": {
+                "name": "Ford Prefect",
+                "org": "The Heart of Gold, inc",
+                "email": "ford.prefect@hog.example.com",
+            },
+            "formats": [
+                {
+                    "formatUuid": "320130b6-e64f-472b-b115-134dadcee218",
+                    "bomIdentifier": "uuid:8234234-234-243-23-4",
+                    "mediatype": "application/cyclonedx",
+                    "category": null,
+                    "url": "https://product.example.com/stuff.json",
+                    "sigurl": "https://product.example.com/stuff.sbom.sig",
+                    "hash": "lkasdfjlkasdfj",
+                    "size": 74747474
+                },
+                {
+                    "formats: "9f86d936-20e7-44c1-9643-c0383f412ce2",
+                    "bomIdentifier": null,
+                    "mediatype": null,
+                    "category": null,
+                    "url": "gurka",
+                    "sigurl": null,
+                    "hash": null,
+                    "size": 0
+                }
+            ]
+        },
+        {
+            "artfeactUuid": "1d10caf0-3a18-413d-9b59-5e2a97977301",
+            "name": "VEX file",
+            "description": null,
+            "author": null,
+            "author_name": null,
+            "formats": []
+        }
+    ]
+}

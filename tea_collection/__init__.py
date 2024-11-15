@@ -6,17 +6,60 @@ SPDX-License-Identifier: BSD
 """
 
 
-class collection:
+class tea_collection:
     """TEA Collection object handling"""
     debug = False
     name = None
     collection = None
     uuid = None
+    # Vocabulary for the full collection, including artefacts and formats
+    vocabulary = (
+        "tcoFormat",
+        "specVersion",
+        "UUID",
+        "product_name",
+        "product_version",
+        "product_release_date",
+        "product_tei_id",
+        "version",
+        "author_name",
+        "author_org",
+        "author_email",
+        "artefacts",
+        "uuid",
+        "name",
+        "description",
+        "author_name",
+        "author_org",
+        "author_email",
+        "formats",
+        "bom-identifier",
+        "mediatype",
+        "category",
+        "url",
+        "sigurl",
+        "hash",
+        "size",
+        "bom-identifier",
+        "mediatype",
+        "category",
+        "url",
+        "sigurl",
+        "hash",
+        "size",
+        "name",
+        "description",
+        "author_name",
+        "author_org",
+        "author_email",
+        "formats"
+    )
 
     def __init__(self, debug):
         """Initialise collection object"""
         self.debug = debug
         self.generate_uuid()
+        self.init_struct()
 
     def __str__(self):
         """Return a printable dnsobject in json."""
@@ -52,6 +95,24 @@ class collection:
             print("DEBUG: Generated new UUID: {}".format(str(self.uuid)))
         return True
 
+    def replace_uuid(self, uuidstr: str):
+        """Set UUID (from import)."""
+        import uuid
+        try:
+            self.uuid = uuid.UUID(uuidstr)
+        except TypeError:
+            if self.debug:
+                print("DEBUG: UUID failure: {}".format(uuidstr))
+            return False
+        except ValueError:
+            if self.debug:
+                print("DEBUG: UUID ValueError: {}".format(uuidstr))
+            return False
+        if self.debug:
+            print("DEBUG: Replaced artefact UUID to {}".format(uuidstr))
+        self.collection["uuid"] = uuidstr
+        return True
+
     def init_struct(self):
         """Initialise empty structure."""
         if self.collection is not None:
@@ -78,7 +139,27 @@ class collection:
         """Set author.
 
         Empty string or None will not update values.
+        All values None will return false
         """
+        if name is None and org is None and email is None:
+            return False
+        if name == "" and org == "" and email == "":
+            return False
+        errors = 0
+        if not isinstance(name, str):
+            if self.debug:
+                print("DEBUG: Name is not str")
+            errors += 1
+        if not isinstance(org, str):
+            if self.debug:
+                print("DEBUG: Org is not str")
+            errors += 1
+        if not isinstance(email, str):
+            if self.debug:
+                print("DEBUG: Email is not str")
+            errors += 1
+        if errors > 0:
+            return False
         if name is not None and name != "":
             self.collection["author_name"] = name
         if org is not None and name != "":
@@ -87,7 +168,18 @@ class collection:
             self.collection["author_email"] = email
         return True
 
-    def set_product(self, name: str, version, releasedate: str, teiid: str):
+    def get_author(self):
+        """Get author details."""
+        return self.collection["author_name"], \
+            self.collection["author_org"], \
+            self.collection["author_email"]
+
+    def set_product(
+            self,
+            name: str,
+            version: str,
+            releasedate: str,
+            teiid: str):
         """Set product metadata.
 
         Empty string or None will not update values.
@@ -102,10 +194,21 @@ class collection:
             self.collection["product_tei_id"] = teiid
         return True
 
-    def set_collection_version(self, version: int):
+    def get_product(self):
+        """Get product details."""
+        return self.collection["product_name"], \
+            self.collection["product_version"], \
+            self.collection["product_release_date"], \
+            self.collection["product_tei_id"]
+
+    def set_version(self, version: int):
         """Set collection version."""
         self.collection["version"] = version
         return True
+
+    def get_version(self):
+        """Return collection version."""
+        return self.collection["version"]
 
     def add_artefact(self, art):
         """Add artefact to collection."""
@@ -119,15 +222,88 @@ class collection:
             print("DEBUG: Adding artefact - type {}".format(type(art)))
         return True
 
+    def artefact_numbers(self):
+        """Return number of artefacts."""
+        return len(self.collection["artefacts"])
+
+    def get_artefact(self, id: int):
+        """Get artefact by ID."""
+        if id < 0 or id >= self.artefact_numbers():
+            if self.debug:
+                print("DEBUG: Bad artefact ID: {}".format(id))
+            return None
+        return self.collection["artefacts"][id]
+
+    def get_artefact_by_attr(self, attr: str, value: str):
+        """Get artefact by attr ID."""
+        from tea_collection import artefact
+        tempart = artefact(self.debug)
+        if not tempart.check_key(attr):
+            # Bad attribute
+            return None
+        if self.artefact_numbers() == 0:
+            return None
+        for art in self.collection["artefacts"]:
+            if art[attr] == value:
+                return art
+        # Artefact not found
+        return None
+
+    def check_key(self, key):
+        """Check if key is in vocabulary."""
+
+        if key in self.vocabulary:
+            return True
+        if self.debug:
+            print("DEBUG. Check_key: {} not in vocabulary".format(key))
+        return False
+
+    def key_exists(self, key):
+        """Check if key exists in artefact."""
+        if key not in self.collection.keys():
+            return False
+        return True
+
+    def is_valid(self):
+        """Check if the collection (base) is valid."""
+        errors = 0
+        errmsg = list()
+
+        if not self.key_exists("product_name"):
+            errors += 1
+            errmsg.append("ERROR: Collection has no product name")
+        elif self.collection["product_name"] is None:
+            errors += 1
+            errmsg.append("ERROR: Collection has empty product name")
+        if self.collection["version"] is None:
+            errors += 1
+            errmsg.append("ERROR: Collection has no version")
+        if self.debug:
+            if errors > 0:
+                print("DEBUG: Collection is not valid.")
+            else:
+                print("DEBUG: Collection is valid. OK!")
+        return errors, errmsg
+
 
 class artefact:
     """TEA Collection artefact handling"""
     artefact = None
     debug = False
+    _valid_keys = (
+        "uuid",
+        "name",
+        "description",
+        "author_name",
+        "author_org",
+        "author_email",
+        "formats"
+    )
 
     def __init__(self, debug):
         """Initialise artefact object"""
         self.debug = debug
+        self.init_struct()
 
     def __str__(self):
         """Return a printable dnsobject in json."""
@@ -135,7 +311,6 @@ class artefact:
         # Create copy object
         newart = dict(self.artefact)
         formlist = self.get_formats()
-        
         newart["formats"] = formlist
 
         return json.dumps(newart, sort_keys=False, indent=4)
@@ -159,11 +334,49 @@ class artefact:
         self.artefact = artefact
         return artefact
 
+    def replace_uuid(self, uuidstr: str):
+        """Set UUID (from import)."""
+        import uuid
+        try:
+            _ = uuid.UUID(uuidstr)
+        except AttributeError:
+            if self.debug:
+                print(
+                    "DEBUG: UUID failure: {} - AttributeError"
+                    .format(uuidstr))
+            return False
+        except TypeError:
+            if self.debug:
+                print("DEBUG: UUID failure: {} - TypeError".format(uuidstr))
+            return False
+        except ValueError:
+            if self.debug:
+                print("DEBUG: UUID ValueError: {}".format(uuidstr))
+            return False
+        self.artefact["uuid"] = uuidstr
+        return True
+
+    def valid_key(self, key):
+        """Check if key is valid"""
+        if key in self._valid_keys:
+            return True
+        return False
+
+    def key_exists(self, key):
+        """Check if key exists in artefact."""
+        if key not in self.artefact.keys():
+            return False
+        return True
+
+    def get_keylist(self) -> list():
+        """Return list of all keys"""
+        return self._valid_keys
+
     def add_format(self, format):
         """Add format to artefact."""
         self.artefact["formats"].append(format)
         return len(self.artefact["formats"])
-    
+
     def get_formats(self):
         """Get data structures from formats in list."""
         formlist = self.artefact["formats"]
@@ -176,12 +389,11 @@ class artefact:
             structlist.append(form.get_struct())
         return structlist
 
-
     def add_blank_format(self):
         """Add blank initialised format to artefact."""
         from tea_collection import format
 
-        newform = artefact_format(debug=self.debug)
+        newform = format(debug=self.debug)
         newform.init_format()
         allformats = self.add_format(newform)
         if self.debug:
@@ -216,17 +428,80 @@ class artefact:
         self.artefact["description"] = desc
         return True
 
+    def is_valid(self):
+        """Check if artefact is valid."""
+        errors = 0
+        errmsg = list()
+        if self.key_exists("name"):
+            if self.artefact["name"] is None:
+                errors += 1
+                errmsg.append("ERROR: Artefact name is None.")
+        else:
+            errors += 1
+            errmsg.append("ERROR: Artefact name is missing.")
+        if errors > 0:
+            if self.debug:
+                print("DEBUG: Artefact is not valid.")
+        return errors, errmsg
+
+    def set_attr_value(self, key, value):
+        """Set attribute."""
+        if self.debug:
+            print("DEBUG: Set_attr: Key {} value: {}".format(key, value))
+        errors = 0
+        errmsg = list()
+
+        # Check if key is valid
+        if not self.valid_key(key):
+            errors += 1
+            errmsg += "ERROR: Bad key {}".format(key)
+        if key == "uuid":
+            # uuid can't be None
+            if value is None or value == "":
+                errors += 1
+                errmsg.append("artefact: uuid not defined")
+            else:
+                self.replace_uuid(value)
+        elif key == "name":
+            self.set_name(value)
+        elif key == "description":
+            self.set_description(value)
+        elif key == "author_name":
+            self.set_author(value, None, None)
+        elif key == "author_org":
+            self.set_author(None, value, None)
+        elif self == "author_email":
+            self.set_author(None, None, value)
+        else:
+            if self.debug:
+                print("Unhandled key {}".format(key))
+        if errors > 0:
+            print("ERRORS: \n{}".format(errmsg))
+            return False
+        return True
+
 
 class format():
     """A format object for an artefact."""
     format = None
     debug = False
+    _valid_keys = (
+        "uuid",
+        "bom-identifier",
+        "mediatype",
+        "category",
+        "url",
+        "sigurl",
+        "hash",
+        "size"
+    )
 
     def __init__(self, debug):
         """Initialise artefact format object"""
         self.debug = debug
         if self.debug:
             print("DEBUG: Initialising artefact format")
+        self.init_struct()
 
     def __str__(self):
         """Return a printable dnsobject in json."""
@@ -254,10 +529,24 @@ class format():
 
     def set_mediatype(self, mediatype: str):
         """Set media type of doc."""
-
         self.format["mediatype"] = mediatype
         return True
-    
+
+    def set_category(self, category: str):
+        """Set category of doc."""
+        self.format["category"] = category
+        return True
+
+    def set_hash(self, hash: str):
+        """Set hash of doc."""
+        self.format["hash"] = hash
+        return True
+
+    def set_size(self, size: str):
+        """Set size of doc."""
+        self.format["size"] = int(size)
+        return True
+
     def set_attributes(self, hash: str, size: int):
         """Set hash and size of artefact."""
         if hash is not None:
@@ -274,3 +563,60 @@ class format():
         if sigurl is not None and sigurl != "":
             self.format["sigurl"] = sigurl
         return True
+
+    def set_bomidentifier(self, bomid: str):
+        """Set nom identifier."""
+        if bomid is None or bomid == "":
+            return False
+        self.format["bom-identifier"] = bomid
+        return True
+
+    def valid_key(self, key):
+        """Check if key is valid"""
+        if key in self._valid_keys:
+            return True
+        return False
+
+    def get_keylist(self) -> list():
+        """Return list of all keys"""
+        return self._valid_keys
+
+    def key_exists(self, key):
+        """Check if key exists in artefact."""
+        if key not in self.format.keys():
+            return False
+        return True
+
+    def replace_uuid(self, uuidstr: str):
+        """Set UUID (from import)."""
+        import uuid
+        try:
+            _ = uuid.UUID(uuidstr)
+        except TypeError:
+            if self.debug:
+                print("DEBUG: UUID failure: {}".format(uuidstr))
+            return False
+        except ValueError:
+            if self.debug:
+                print("DEBUG: UUID ValueError: {}".format(uuidstr))
+            return False
+        self.format["uuid"] = uuidstr
+        return True
+
+    def is_valid(self):
+        """Check if format is valid."""
+        errors = 0
+        errmsg = list()
+        if self.key_exists("url"):
+            if self.format["url"] is None:
+                errors += 1
+                errmsg.append("ERROR: Format has empty URL.")
+        else:
+            errors += 1
+            errmsg.append("ERROR: Format lacks URL.")
+
+        if errors > 0:
+            if self.debug:
+                print("DEBUG: Format is not valid.")
+
+        return errors, errmsg
