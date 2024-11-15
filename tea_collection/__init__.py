@@ -6,7 +6,7 @@ SPDX-License-Identifier: BSD
 """
 
 
-class collection:
+class tea_collection:
     """TEA Collection object handling"""
     debug = False
     name = None
@@ -194,7 +194,7 @@ class collection:
             self.collection["product_tei_id"] = teiid
         return True
 
-     def get_product(self):
+    def get_product(self):
         """Get product details."""
         return self.collection["product_name"], \
             self.collection["product_version"], \
@@ -225,7 +225,7 @@ class collection:
     def artefact_numbers(self):
         """Return number of artefacts."""
         return len(self.collection["artefacts"])
-    
+
     def get_artefact(self, id: int):
         """Get artefact by ID."""
         if id < 0 or id >= self.artefact_numbers():
@@ -233,6 +233,21 @@ class collection:
                 print("DEBUG: Bad artefact ID: {}".format(id))
             return None
         return self.collection["artefacts"][id]
+
+    def get_artefact_by_attr(self, attr: str, value: str):
+        """Get artefact by attr ID."""
+        from tea_collection import artefact
+        tempart = artefact(self.debug)
+        if not tempart.check_key(attr):
+            # Bad attribute
+            return None
+        if self.artefact_numbers() == 0:
+            return None
+        for art in self.collection["artefacts"]:
+            if art[attr] == value:
+                return art
+        # Artefact not found
+        return None
 
     def check_key(self, key):
         """Check if key is in vocabulary."""
@@ -324,9 +339,15 @@ class artefact:
         import uuid
         try:
             _ = uuid.UUID(uuidstr)
+        except AttributeError:
+            if self.debug:
+                print(
+                    "DEBUG: UUID failure: {} - AttributeError"
+                    .format(uuidstr))
+            return False
         except TypeError:
             if self.debug:
-                print("DEBUG: UUID failure: {}".format(uuidstr))
+                print("DEBUG: UUID failure: {} - TypeError".format(uuidstr))
             return False
         except ValueError:
             if self.debug:
@@ -422,6 +443,42 @@ class artefact:
             if self.debug:
                 print("DEBUG: Artefact is not valid.")
         return errors, errmsg
+
+    def set_attr_value(self, key, value):
+        """Set attribute."""
+        if self.debug:
+            print("DEBUG: Set_attr: Key {} value: {}".format(key, value))
+        errors = 0
+        errmsg = list()
+
+        # Check if key is valid
+        if not self.valid_key(key):
+            errors += 1
+            errmsg += "ERROR: Bad key {}".format(key)
+        if key == "uuid":
+            # uuid can't be None
+            if value is None or value == "":
+                errors += 1
+                errmsg.append("artefact: uuid not defined")
+            else:
+                self.replace_uuid(value)
+        elif key == "name":
+            self.set_name(value)
+        elif key == "description":
+            self.set_description(value)
+        elif key == "author_name":
+            self.set_author(value, None, None)
+        elif key == "author_org":
+            self.set_author(None, value, None)
+        elif self == "author_email":
+            self.set_author(None, None, value)
+        else:
+            if self.debug:
+                print("Unhandled key {}".format(key))
+        if errors > 0:
+            print("ERRORS: \n{}".format(errmsg))
+            return False
+        return True
 
 
 class format():

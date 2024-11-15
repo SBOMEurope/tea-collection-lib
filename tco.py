@@ -8,6 +8,17 @@ import argparse
 import sys
 
 
+def generate_hash_sha256(stuff, debug):
+    """Generate a hash of stuff."""
+    import hashlib
+    m = hashlib.sha256()
+    m.update(stuff)
+    dig = m.hexdigest()
+    if debug:
+        print("DEBUG: digest: {}".format(dig))
+    return dig
+
+
 def test_file_exists(filename: str, debug=False) -> bool:
     """Check if file exists."""
     from pathlib import Path
@@ -51,14 +62,14 @@ def getfile(filename: str, debug: bool):
 
 def run_base_test(debug: bool):
     """Test creating a collection with artefacts"""
-    from tea_collection import collection
+    from tea_collection import tea_collection
     from tea_collection import artefact
     from tea_collection import format
 
     if debug:
         print("DEBUG: Creating collection\n")
-    mycol = collection(debug=debug)
-    mycol.set_collection_version(12)
+    mycol = tea_collection(debug=debug)
+    mycol.set_version(12)
     mycol.set_author(
         name="Ford Prefect",
         org="The Heart of Gold, inc",
@@ -90,7 +101,10 @@ def run_base_test(debug: bool):
         "https://product.example.com/stuff.json",
         "https://product.example.com/stuff.sbom.sig")
     myform.set_attributes(hash=None, size=74747474)
-    myform.set_attributes(hash="lkasdfjlkasdfj", size=None)
+    myhash = generate_hash_sha256(
+        stuff=str.encode(myform.format["uuid"]),
+        debug=debug)
+    myform.set_attributes(hash=myhash, size=None)
     formid = myart.add_format(myform)
 
     # Create new format object
@@ -172,6 +186,8 @@ def check_artefact(tco, thisart: dict, debug):
     Add artefact to object if ok."""
     from tea_collection import artefact
 
+    if debug:
+        print("DEBUG: *** check_artefact: {}".format(thisart["name"]))
     myart = artefact(debug=debug)
     errors = 0
     errmsg = list()
@@ -183,26 +199,10 @@ def check_artefact(tco, thisart: dict, debug):
         if newerr > 0:
             errors += newerr
             errmsg += newmsg
-        if key == "uuid":
-            # uuid can't be None
-            if thisart[key] is None or thisart[key] == "":
-                errors += 1
-                errmsg.append("artefact: uuid not defined")
-            else:
-                myart.replace_uuid(thisart[key])
-        elif key == "name":
-            myart.set_name(thisart[key])
-        elif key == "description":
-            myart.set_description(thisart[key])
-        elif key == "author_name":
-            myart.set_author(thisart[key], None, None)
-        elif key == "author_org":
-            myart.set_author(None, thisart[key], None)
-        elif key == "author_email":
-            myart.set_author(None, None, thisart[key])
-        else:
-            if debug:
-                print("Unhandled key {}".format(key))
+        res = myart.set_attr_value(key, thisart[key])
+        if res is False:
+            errors += 1
+            errmsg.append("artefact: Failed to set values")
 
     # Check if artefact is valid
     newerr, newmsg = myart.is_valid()
@@ -355,12 +355,12 @@ def dict2object(colldict, debug: bool):
 
     (like input from a json file)
     """
-    from tea_collection import collection
+    from tea_collection import tea_collection
 
     if debug:
         print("DEBUG: dict2object converting data")
     # Create a collection object
-    mycol = collection(debug=debug)
+    mycol = tea_collection(debug=debug)
     errors = 0
     errmsg = list()
 
@@ -477,6 +477,12 @@ def main():
         parser.print_help()
         sys.exit(0)
     validate = args.validate
+    test = args.test
+
+    # If no args are given on command line, print help
+    if not validate and not test:
+        parser.print_help()
+        sys.exit(1)
 
     if validate and len(validate) > 1:
         print("ERROR: --sign can only be passed once.")

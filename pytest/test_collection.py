@@ -14,9 +14,9 @@ TESTDATA_DIR = os.path.join(THIS_DIR, os.pardir, 'test_data' + os.sep)
 @pytest.fixture
 def def_collection():
     """A default empty collection."""
-    from tea_collection import collection
+    from tea_collection import tea_collection
 
-    mycol = collection(debug=True)
+    mycol = tea_collection(debug=True)
     return mycol
 
 
@@ -91,8 +91,6 @@ class TestCollection:
             'product_name',
             strcol
         ) is not None
-    
-
 
     def test_set_author_01(self, capsys, request, def_collection):
         """Test set author."""
